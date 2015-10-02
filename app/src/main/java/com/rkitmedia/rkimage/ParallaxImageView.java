@@ -48,7 +48,7 @@ public class ParallaxImageView extends AspectRatioImageView {
     private Interpolator interpolator = new LinearInterpolator();
 
     private ViewTreeObserver.OnScrollChangedListener mOnScrollChangedListener = null;
-    //    private ViewTreeObserver.OnGlobalLayoutListener mOnGlobalLayoutListener = null;
+        private ViewTreeObserver.OnGlobalLayoutListener mOnGlobalLayoutListener = null;
     private ViewTreeObserver.OnDrawListener onDrawListener = null;
 
     public ParallaxImageView(Context context) {
@@ -83,19 +83,19 @@ public class ParallaxImageView extends AspectRatioImageView {
             }
         };
 
-//        mOnGlobalLayoutListener = new ViewTreeObserver.OnGlobalLayoutListener() {
-//            @Override
-//            public void onGlobalLayout() {
+        mOnGlobalLayoutListener = new ViewTreeObserver.OnGlobalLayoutListener() {
+            @Override
+            public void onGlobalLayout() {
 //                heightImageView = (float) getHeight();
 //                widthImageView = (float) getWidth();
-//
-//                applyParallax();
-//            }
-//        };
+
+                applyParallax();
+            }
+        };
 
         ViewTreeObserver viewTreeObserver = getViewTreeObserver();
         viewTreeObserver.addOnScrollChangedListener(mOnScrollChangedListener);
-//        viewTreeObserver.addOnGlobalLayoutListener(mOnGlobalLayoutListener);
+        viewTreeObserver.addOnGlobalLayoutListener(mOnGlobalLayoutListener);
 
         if (updateOnDraw
                 && android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
@@ -116,11 +116,12 @@ public class ParallaxImageView extends AspectRatioImageView {
         ViewTreeObserver viewTreeObserver = getViewTreeObserver();
         viewTreeObserver.removeOnScrollChangedListener(mOnScrollChangedListener);
 
-//        if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
-//            viewTreeObserver.removeOnGlobalLayoutListener(mOnGlobalLayoutListener);
-//        } else {
-//            viewTreeObserver.removeGlobalOnLayoutListener(mOnGlobalLayoutListener);
-//        }
+        if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+            viewTreeObserver.removeOnGlobalLayoutListener(mOnGlobalLayoutListener);
+        } else {
+            //noinspection deprecation
+            viewTreeObserver.removeGlobalOnLayoutListener(mOnGlobalLayoutListener);
+        }
 
         if (updateOnDraw && android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
             viewTreeObserver.removeOnDrawListener(onDrawListener);

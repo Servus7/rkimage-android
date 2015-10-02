@@ -14,12 +14,12 @@ import android.widget.ImageView;
  * @author keckardt
  *         Maintains an aspect ratio based on either width or height. Disabled by default.
  */
-public abstract class AspectRatioImageView extends ImageView {
+public class AspectRatioImageView extends ImageView {
     public static final int MEASUREMENT_WIDTH = 0;
     public static final int MEASUREMENT_HEIGHT = 1;
 
     private static final int DEFAULT_DOMINANT_MEASUREMENT = MEASUREMENT_WIDTH;
-    private static final boolean DEFAULT_ASPECT_RATIO_ENABLED = false;
+    private static final boolean DEFAULT_ASPECT_RATIO_ENABLED = true;
     private static final float DEFAULT_ASPECT_RATIO = 1f;
 
     private boolean aspectRatioEnabled;
@@ -89,7 +89,12 @@ public abstract class AspectRatioImageView extends ImageView {
      * @param aspectRatio set aspect ratio
      */
     public void setAspectRatio(float aspectRatio) {
+        if (aspectRatio <= 0) {
+            throw new IllegalArgumentException("Invalid aspectRatio.");
+        }
+
         this.aspectRatio = aspectRatio;
+
         if (aspectRatioEnabled) {
             requestLayout();
         }
@@ -111,7 +116,10 @@ public abstract class AspectRatioImageView extends ImageView {
      */
     public void setAspectRatioEnabled(boolean aspectRatioEnabled) {
         this.aspectRatioEnabled = aspectRatioEnabled;
-        requestLayout();
+
+        if (aspectRatioEnabled) {
+            requestLayout();
+        }
     }
 
     /**
@@ -135,22 +143,19 @@ public abstract class AspectRatioImageView extends ImageView {
         }
 
         this.dominantMeasurement = dominantMeasurement;
-        requestLayout();
+
+        if (aspectRatioEnabled) {
+            requestLayout();
+        }
     }
 
     @CallSuper
     protected void checkAttributes(AttributeSet attrs) {
-        if (isInEditMode()) {
-            return;
-        }
-
         TypedArray a = getContext().obtainStyledAttributes(attrs, R.styleable.AspectRatioImageView);
 
-        aspectRatio = a.getFloat(R.styleable.AspectRatioImageView_aspectRatio, DEFAULT_ASPECT_RATIO);
-        aspectRatioEnabled = a.getBoolean(R.styleable.AspectRatioImageView_aspectRatioEnabled,
-                DEFAULT_ASPECT_RATIO_ENABLED);
-        dominantMeasurement = a.getInt(R.styleable.AspectRatioImageView_dominantMeasurement,
-                DEFAULT_DOMINANT_MEASUREMENT);
+        setAspectRatio(a.getFloat(R.styleable.AspectRatioImageView_aspectRatio, DEFAULT_ASPECT_RATIO));
+        setAspectRatioEnabled(a.getBoolean(R.styleable.AspectRatioImageView_aspectRatioEnabled, DEFAULT_ASPECT_RATIO_ENABLED));
+        setDominantMeasurement(a.getInt(R.styleable.AspectRatioImageView_dominantMeasurement, DEFAULT_DOMINANT_MEASUREMENT));
 
         a.recycle();
     }
