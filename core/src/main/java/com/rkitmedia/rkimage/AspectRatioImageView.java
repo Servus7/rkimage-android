@@ -101,6 +101,23 @@ public class AspectRatioImageView extends ImageView {
     }
 
     /**
+     * Set the aspect ratio for this image view. This will update the view instantly.
+     *
+     * @param aspectRatio set aspect ratio
+     */
+    public void setAspectRatio(double aspectRatio) {
+        if (aspectRatio <= 0) {
+            throw new IllegalArgumentException("Invalid aspectRatio.");
+        }
+
+        this.aspectRatio = (float) aspectRatio;
+
+        if (aspectRatioEnabled) {
+            requestLayout();
+        }
+    }
+
+    /**
      * Get whether or not forcing the aspect ratio is enabled.
      *
      * @return value of current aspect ratio
