@@ -122,7 +122,7 @@ public class AspectRatioImageView extends ImageView {
      *
      * @return value of current aspect ratio
      */
-    public boolean getAspectRatioEnabled() {
+    public boolean isAspectRatioEnabled() {
         return aspectRatioEnabled;
     }
 
