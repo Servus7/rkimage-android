@@ -76,11 +76,15 @@ public class AspectRatioImageView extends ImageView {
         setMeasuredDimension(newWidth, newHeight);
     }
 
-    /**
-     * Get the aspect ratio for this image view.
-     */
-    public float getAspectRatio() {
-        return aspectRatio;
+    @CallSuper
+    protected void checkAttributes(AttributeSet attrs) {
+        TypedArray a = getContext().obtainStyledAttributes(attrs, R.styleable.AspectRatioImageView);
+
+        setAspectRatio(a.getFloat(R.styleable.AspectRatioImageView_rk_aspectRatio, DEFAULT_ASPECT_RATIO));
+        setAspectRatioEnabled(a.getBoolean(R.styleable.AspectRatioImageView_rk_aspectRatioEnabled, DEFAULT_ASPECT_RATIO_ENABLED));
+        setDominantMeasurement(a.getInt(R.styleable.AspectRatioImageView_rk_dominantMeasurement, DEFAULT_DOMINANT_MEASUREMENT));
+
+        a.recycle();
     }
 
     /**
@@ -118,16 +122,14 @@ public class AspectRatioImageView extends ImageView {
     }
 
     /**
-     * Get whether or not forcing the aspect ratio is enabled.
-     *
-     * @return value of current aspect ratio
+     * Get the aspect ratio for this image view.
      */
-    public boolean isAspectRatioEnabled() {
-        return aspectRatioEnabled;
+    public float getAspectRatio() {
+        return aspectRatio;
     }
 
     /**
-     * set whether or not forcing the aspect ratio is enabled. This will re-layout the view.
+     * set whether or not the aspect ratio is enabled. This will re-layout the view.
      *
      * @param aspectRatioEnabled weather or not aspect ratio should be used
      */
@@ -140,12 +142,12 @@ public class AspectRatioImageView extends ImageView {
     }
 
     /**
-     * Get the dominant measurement for the aspect ratio.
+     * Get whether or not the aspect ratio is enabled.
      *
-     * @return weather width or height is used as dominant measurement.
+     * @return value of current aspect ratio usage
      */
-    public int getDominantMeasurement() {
-        return dominantMeasurement;
+    public boolean isAspectRatioEnabled() {
+        return aspectRatioEnabled;
     }
 
     /**
@@ -166,14 +168,12 @@ public class AspectRatioImageView extends ImageView {
         }
     }
 
-    @CallSuper
-    protected void checkAttributes(AttributeSet attrs) {
-        TypedArray a = getContext().obtainStyledAttributes(attrs, R.styleable.AspectRatioImageView);
-
-        setAspectRatio(a.getFloat(R.styleable.AspectRatioImageView_aspectRatio, DEFAULT_ASPECT_RATIO));
-        setAspectRatioEnabled(a.getBoolean(R.styleable.AspectRatioImageView_aspectRatioEnabled, DEFAULT_ASPECT_RATIO_ENABLED));
-        setDominantMeasurement(a.getInt(R.styleable.AspectRatioImageView_dominantMeasurement, DEFAULT_DOMINANT_MEASUREMENT));
-
-        a.recycle();
+    /**
+     * Get the dominant measurement for the aspect ratio.
+     *
+     * @return weather width or height is used as dominant measurement.
+     */
+    public int getDominantMeasurement() {
+        return dominantMeasurement;
     }
 }

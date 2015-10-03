@@ -1,31 +1,29 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <declare-styleable name="AspectRatioImageView">
-        <attr name="aspectRatio" format="float" />
-        <attr name="aspectRatioEnabled" format="boolean" />
-        <attr name="dominantMeasurement">
+        <attr name="rk_aspectRatioEnabled" format="boolean" />
+        <attr name="rk_aspectRatio" format="float" />
+        <attr name="rk_dominantMeasurement">
             <enum name="width" value="0" />
             <enum name="height" value="1" />
         </attr>
     </declare-styleable>
 
     <declare-styleable name="ParallaxImageView">
-        <attr name="reverse">
-            <enum name="none" value="1" />
-            <enum name="reverseX" value="2" />
-            <enum name="reverseY" value="3" />
-            <enum name="reverseBoth" value="4" />
+        <attr name="rk_parallaxEnabled" format="boolean" />
+        <attr name="rk_parallaxX" format="dimension" />
+        <attr name="rk_parallaxY" format="dimension" />
+
+        <attr name="rk_reverse">
+            <enum name="none" value="0" />
+            <enum name="reverseX" value="1" />
+            <enum name="reverseY" value="2" />
+            <enum name="reverseBoth" value="3" />
         </attr>
 
-        <attr name="parallax_x" format="dimension" />
-        <attr name="parallax_y" format="dimension" />
+        <attr name="rk_updateOnDraw" format="boolean" />
 
-        <attr name="update_onDraw" format="boolean" />
-
-        <attr name="block_parallax_x" format="boolean" />
-        <attr name="block_parallax_y" format="boolean" />
-
-        <attr name="interpolation">
+        <attr name="rk_interpolation">
             <enum name="linear" value="0" />
             <enum name="accelerate_decelerate" value="1" />
             <enum name="accelerate" value="2" />
@@ -35,6 +33,5 @@
             <enum name="decelerate" value="6" />
             <enum name="overshoot" value="7" />
         </attr>
-
     </declare-styleable>
 </resources>

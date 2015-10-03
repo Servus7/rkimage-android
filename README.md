@@ -2,7 +2,7 @@
 
 ##Views
 ###AspectRatioImageView
-To use this view, add following to your layout insted of a normal ImageView:
+To use this view, add following to your layout instead of a normal ImageView:
 ``` xml
 <com.rkitmedia.rkimage.AspectRatioImageView
   android:layout_width="match_parent"
@@ -16,6 +16,6 @@ Following options are available:
    * ```width``` if height should depend on width
    * ```height``` if width should depend on height
 * aspectRatio
-   * the desired aspectRatio in width/height as float value
+   * the desired aspectRatio in width divided by height
 * aspectRatioEnabled
   * ```true``` if aspectRatio should be used for view measurement or ```false``` if not to

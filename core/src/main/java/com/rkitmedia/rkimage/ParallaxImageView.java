@@ -5,8 +5,8 @@ import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Point;
 import android.os.Build;
+import android.support.annotation.CallSuper;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.Display;
 import android.view.ViewTreeObserver;
 import android.view.WindowManager;
@@ -27,16 +27,22 @@ import android.view.animation.OvershootInterpolator;
  */
 public class ParallaxImageView extends AspectRatioImageView {
 
-    public static final int REVERSE_NONE = 1;
-    public static final int REVERSE_X = 2;
-    public static final int REVERSE_Y = 3;
-    public static final int REVERSE_BOTH = 4;
+    public static final int REVERSE_NONE = 0;
+    public static final int REVERSE_X = 1;
+    public static final int REVERSE_Y = 2;
+    public static final int REVERSE_BOTH = 3;
 
-    public boolean reverseX = false;
-    public boolean reverseY = false;
-    public boolean updateOnDraw = false;
-    public boolean blockParallaxX = false;
-    public boolean blockParallaxY = false;
+    private static final boolean DEFAULT_PARALLAX_ENABLED = true;
+    private static final int DEFAULT_PARALLAX_REVERSE = REVERSE_NONE;
+    private static final boolean DEFAULT_UPDATE_ON_DRAW = false;
+    private static final int DEFAULT_INTERPOLATION = InterpolatorSelector.LINEAR;
+
+    private boolean parallaxEnabled = DEFAULT_PARALLAX_ENABLED;
+    private int parallaxReverse = DEFAULT_PARALLAX_REVERSE;
+    private boolean reverseX = false;
+    private boolean reverseY = false;
+    private boolean updateOnDraw = DEFAULT_UPDATE_ON_DRAW;
+    private int interpolatorID = DEFAULT_INTERPOLATION;
 
     private int screenWidth;
     private int screenHeight;
@@ -48,28 +54,24 @@ public class ParallaxImageView extends AspectRatioImageView {
     private Interpolator interpolator = new LinearInterpolator();
 
     private ViewTreeObserver.OnScrollChangedListener mOnScrollChangedListener = null;
-        private ViewTreeObserver.OnGlobalLayoutListener mOnGlobalLayoutListener = null;
+    private ViewTreeObserver.OnGlobalLayoutListener mOnGlobalLayoutListener = null;
     private ViewTreeObserver.OnDrawListener onDrawListener = null;
 
     public ParallaxImageView(Context context) {
         super(context);
-        checkScale();
     }
 
     public ParallaxImageView(Context context, AttributeSet attrs) {
         super(context, attrs);
-        checkScale();
     }
 
     public ParallaxImageView(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
-        checkScale();
     }
 
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
     public ParallaxImageView(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
         super(context, attrs, defStyleAttr, defStyleRes);
-        checkScale();
     }
 
     @Override
@@ -86,8 +88,8 @@ public class ParallaxImageView extends AspectRatioImageView {
         mOnGlobalLayoutListener = new ViewTreeObserver.OnGlobalLayoutListener() {
             @Override
             public void onGlobalLayout() {
-//                heightImageView = (float) getHeight();
-//                widthImageView = (float) getWidth();
+                heightImageView = (float) getHeight();
+                widthImageView = (float) getWidth();
 
                 applyParallax();
             }
@@ -130,69 +132,6 @@ public class ParallaxImageView extends AspectRatioImageView {
         super.onDetachedFromWindow();
     }
 
-    private boolean checkScale() {
-        switch (getScaleType()) {
-            case CENTER:
-            case CENTER_CROP:
-            case CENTER_INSIDE:
-                return true;
-            case FIT_CENTER:
-                Log.d("ParallaxEverywhere", "Scale type fitCenter unsupported");
-                break;
-            case FIT_END:
-                Log.d("ParallaxEverywhere", "Scale type fitEnd unsupported");
-                break;
-            case FIT_START:
-                Log.d("ParallaxEverywhere", "Scale type fitStart unsupported");
-                break;
-            case FIT_XY:
-                Log.d("ParallaxEverywhere", "Scale type fitXY unsupported");
-                break;
-            case MATRIX:
-                Log.d("ParallaxEverywhere", "Scale type matrix unsupported");
-                break;
-        }
-        return false;
-    }
-
-    @Override
-    protected void checkAttributes(AttributeSet attrs) {
-        super.checkAttributes(attrs);
-
-        TypedArray arr = getContext().obtainStyledAttributes(attrs, R.styleable.ParallaxImageView);
-        int reverse = arr.getInt(R.styleable.ParallaxImageView_reverse, 1);
-
-        updateOnDraw = arr.getBoolean(R.styleable.ParallaxImageView_update_onDraw, false);
-
-        blockParallaxX = arr.getBoolean(R.styleable.ParallaxImageView_block_parallax_x, false);
-        blockParallaxY = arr.getBoolean(R.styleable.ParallaxImageView_block_parallax_y, false);
-
-        reverseX = false;
-        reverseY = false;
-        switch (reverse) {
-            case REVERSE_NONE:
-                break;
-            case REVERSE_X:
-                reverseX = true;
-                break;
-            case REVERSE_Y:
-                reverseY = true;
-                break;
-            case REVERSE_BOTH:
-                reverseX = true;
-                reverseY = true;
-                break;
-        }
-
-        checkScale();
-
-        int interpolationId = arr.getInt(R.styleable.ParallaxImageView_interpolation, 0);
-
-        interpolator = InterpolatorSelector.interpolatorId(interpolationId);
-
-        arr.recycle();
-    }
-
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
@@ -203,8 +142,8 @@ public class ParallaxImageView extends AspectRatioImageView {
             int vheight = getMeasuredHeight();
             int vwidth = getMeasuredWidth();
 
-            heightImageView = vwidth;
-            widthImageView = vheight;
+//            heightImageView = vwidth;
+//            widthImageView = vheight;
 
             float scale;
 
@@ -240,11 +179,129 @@ public class ParallaxImageView extends AspectRatioImageView {
         applyParallax();
     }
 
+    @Override
+    @CallSuper
+    protected void checkAttributes(AttributeSet attrs) {
+        super.checkAttributes(attrs);
+
+        TypedArray a = getContext().obtainStyledAttributes(attrs, R.styleable.ParallaxImageView);
+
+        setParallaxEnabled(a.getBoolean(R.styleable.ParallaxImageView_rk_parallaxEnabled, DEFAULT_PARALLAX_ENABLED));
+        setParallaxReverse(a.getInt(R.styleable.ParallaxImageView_rk_reverse, DEFAULT_PARALLAX_REVERSE));
+        setUpdateOnDrawEnabled(a.getBoolean(R.styleable.ParallaxImageView_rk_updateOnDraw, DEFAULT_UPDATE_ON_DRAW));
+        setInterpolator(a.getInt(R.styleable.ParallaxImageView_rk_interpolation, DEFAULT_INTERPOLATION));
+
+        a.recycle();
+    }
+
+    /**
+     * set whether or not parallax is enabled. This will re-layout the view.
+     *
+     * @param parallaxEnabled weather or not parallax should be used
+     */
+
+    public void setParallaxEnabled(boolean parallaxEnabled) {
+        this.parallaxEnabled = parallaxEnabled;
+
+        if (parallaxEnabled) {
+            requestLayout();
+        }
+    }
+
+    /**
+     * Get whether or not parallax is enabled.
+     *
+     * @return value of current parallax usage
+     */
+    public boolean isParallaxEnabled() {
+        return parallaxEnabled;
+    }
+
+    public void setParallaxReverse(int parallaxReverse) {
+        switch (parallaxReverse) {
+            case REVERSE_NONE:
+                reverseX = false;
+                reverseY = false;
+                break;
+            case REVERSE_X:
+                reverseX = true;
+                reverseY = false;
+                break;
+            case REVERSE_Y:
+                reverseX = false;
+                reverseY = true;
+                break;
+            case REVERSE_BOTH:
+                reverseX = true;
+                reverseY = true;
+                break;
+            default:
+                throw new IllegalArgumentException("Unknown parallax reverse with ID " + parallaxReverse);
+        }
+
+        this.parallaxReverse = parallaxReverse;
+
+        if (parallaxEnabled) {
+            requestLayout();
+        }
+    }
+
+    public int getParallaxReverse() {
+        return parallaxReverse;
+    }
+
+    public void setUpdateOnDrawEnabled(boolean updateOnDraw) {
+        this.updateOnDraw = updateOnDraw;
+
+        if (parallaxEnabled) {
+            requestLayout();
+        }
+    }
+
+    public boolean isUpdateOnDrawEnabled() {
+        return updateOnDraw;
+    }
+
+    @Override
+    public void setScaleType(ScaleType scaleType) {
+        super.setScaleType(scaleType);
+
+        if (isParallaxEnabled()) {
+            switch (scaleType) {
+                case CENTER:
+                case CENTER_CROP:
+                case CENTER_INSIDE:
+                    break;
+                case FIT_CENTER:
+                    throw new IllegalArgumentException("Scale type fitCenter unsupported");
+                case FIT_END:
+                    throw new IllegalArgumentException("Scale type fitEnd unsupported");
+                case FIT_START:
+                    throw new IllegalArgumentException("Scale type fitStart unsupported");
+                case FIT_XY:
+                    throw new IllegalArgumentException("Scale type fitXY unsupported");
+                case MATRIX:
+                    throw new IllegalArgumentException("Scale type matrix unsupported");
+            }
+        }
+    }
+
+    public void setInterpolator(int interpolatorID) {
+        this.interpolatorID = interpolatorID;
+        this.interpolator = InterpolatorSelector.interpolatorId(interpolatorID);
+    }
+
+    public int getInterpolatorID() {
+        return interpolatorID;
+    }
+
+    public Interpolator getInterpolator() {
+        return interpolator;
+    }
+
     private void parallaxAnimation() {
         initSizeScreen();
-
         applyParallax();
-
     }
 
     private void initSizeScreen() {
@@ -309,56 +366,19 @@ public class ParallaxImageView extends AspectRatioImageView {
         }
     }
 
-    public void setInterpolator(Interpolator interpol) {
-        interpolator = interpol;
-    }
-
-    public boolean isReverseX() {
-        return reverseX;
-    }
-
-    public void setReverseX(boolean reverseX) {
-        this.reverseX = reverseX;
-    }
-
-    public boolean isReverseY() {
-        return reverseY;
-    }
-
-    public void setReverseY(boolean reverseY) {
-        this.reverseY = reverseY;
-    }
-
-    public boolean isBlockParallaxX() {
-        return blockParallaxX;
-    }
-
-    public void setBlockParallaxX(boolean blockParallaxX) {
-        this.blockParallaxX = blockParallaxX;
-    }
-
-    public boolean isBlockParallaxY() {
-        return blockParallaxY;
-    }
-
-    public void setBlockParallaxY(boolean blockParallaxY) {
-        this.blockParallaxY = blockParallaxY;
-    }
-
     private static class InterpolatorSelector {
-        private static final int LINEAR = 0;
-        private static final int ACCELERATE_DECELERATE = 1;
-        private static final int ACCELERATE = 2;
-        private static final int ANTICIPATE = 3;
-        private static final int ANTICIPATE_OVERSHOOT = 4;
-        private static final int BOUNCE = 5;
-        private static final int DECELERATE = 6;
-        private static final int OVERSHOOT = 7;
+        public static final int LINEAR = 0;
+        public static final int ACCELERATE_DECELERATE = 1;
+        public static final int ACCELERATE = 2;
+        public static final int ANTICIPATE = 3;
+        public static final int ANTICIPATE_OVERSHOOT = 4;
+        public static final int BOUNCE = 5;
+        public static final int DECELERATE = 6;
+        public static final int OVERSHOOT = 7;
 
         public static Interpolator interpolatorId(int interpolationId) {
             switch (interpolationId) {
                 case LINEAR:
-                default:
                     return new LinearInterpolator();
                 case ACCELERATE_DECELERATE:
                     return new AccelerateDecelerateInterpolator();
@@ -374,11 +394,8 @@ public class ParallaxImageView extends AspectRatioImageView {
                     return new DecelerateInterpolator();
                 case OVERSHOOT:
                     return new OvershootInterpolator();
-                //TODO: this interpolations needs parameters
-                //case CYCLE:
-                //    return new CycleInterpolator();
-                //case PATH:
-                //    return new PathInterpolator();
+                default:
+                    throw new IllegalArgumentException("Unknown interpolation with ID " + interpolationId);
             }
         }
     }
