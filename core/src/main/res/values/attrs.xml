@@ -13,17 +13,18 @@
         <attr name="rk_parallaxEnabled" format="boolean" />
         <attr name="rk_parallaxX" format="dimension" />
         <attr name="rk_parallaxY" format="dimension" />
+        <attr name="rk_parallaxContainer" format="reference" />
 
-        <attr name="rk_reverse">
+        <attr name="rk_parallaxReverse">
             <enum name="none" value="0" />
             <enum name="reverseX" value="1" />
             <enum name="reverseY" value="2" />
             <enum name="reverseBoth" value="3" />
         </attr>
 
-        <attr name="rk_updateOnDraw" format="boolean" />
+        <attr name="rk_parallaxUpdateOnDraw" format="boolean" />
 
-        <attr name="rk_interpolation">
+        <attr name="rk_parallaxInterpolation">
             <enum name="linear" value="0" />
             <enum name="accelerate_decelerate" value="1" />
             <enum name="accelerate" value="2" />
