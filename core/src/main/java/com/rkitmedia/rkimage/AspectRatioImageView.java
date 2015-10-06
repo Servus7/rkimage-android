@@ -25,6 +25,7 @@ public class AspectRatioImageView extends ImageView {
     private boolean aspectRatioEnabled;
     private int dominantMeasurement;
     private float aspectRatio;
+    private boolean attachedToWindow;
 
     public AspectRatioImageView(Context context) {
         super(context);
@@ -44,6 +45,20 @@ public class AspectRatioImageView extends ImageView {
     public AspectRatioImageView(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
         super(context, attrs, defStyleAttr, defStyleRes);
         checkAttributes(attrs);
+    }
+
+    @Override
+    protected void onAttachedToWindow() {
+        super.onAttachedToWindow();
+
+        attachedToWindow = true;
+    }
+
+    @Override
+    protected void onDetachedFromWindow() {
+        super.onDetachedFromWindow();
+
+        attachedToWindow = false;
     }
 
     @Override
@@ -175,5 +190,10 @@ public class AspectRatioImageView extends ImageView {
      */
     public int getDominantMeasurement() {
         return dominantMeasurement;
+    }
+
+    @Override
+    public boolean isAttachedToWindow() {
+        return attachedToWindow;
     }
 }

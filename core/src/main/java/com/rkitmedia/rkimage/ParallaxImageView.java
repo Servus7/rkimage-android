@@ -3,6 +3,7 @@ package com.rkitmedia.rkimage;
 import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.res.TypedArray;
+import android.graphics.Matrix;
 import android.graphics.Rect;
 import android.os.Build;
 import android.support.annotation.CallSuper;
@@ -37,6 +38,8 @@ public class ParallaxImageView extends AspectRatioImageView {
     private static final int DEFAULT_PARALLAX_REVERSE = REVERSE_NONE;
     private static final boolean DEFAULT_UPDATE_ON_DRAW = false;
     private static final int DEFAULT_INTERPOLATION = InterpolatorSelector.LINEAR;
+    private static final int DEFAULT_PARALLAX_X = -1;
+    private static final int DEFAULT_PARALLAX_Y = -1;
 
     private boolean parallaxEnabled = DEFAULT_PARALLAX_ENABLED;
     private int parallaxReverse = DEFAULT_PARALLAX_REVERSE;
@@ -45,11 +48,11 @@ public class ParallaxImageView extends AspectRatioImageView {
     private boolean updateOnDraw = DEFAULT_UPDATE_ON_DRAW;
     private int interpolatorID = DEFAULT_INTERPOLATION;
     private View container = null;
+    private int parallaxX = DEFAULT_PARALLAX_X;
+    private int parallaxY = DEFAULT_PARALLAX_Y;
 
     private float scrollSpaceX = 0;
     private float scrollSpaceY = 0;
-    private float heightImageView;
-    private float widthImageView;
 
     private Interpolator interpolator;
     private ViewTreeObserver.OnScrollChangedListener mOnScrollChangedListener = null;
@@ -59,6 +62,11 @@ public class ParallaxImageView extends AspectRatioImageView {
     private final Rect containerBounds = new Rect();
     private final int[] parallaxPos = new int[2];
     private final Rect parallaxRect = new Rect();
+    private ScaleType scaleType;
+    private final Matrix matrix = new Matrix();
+    private float scale;
+    private float centerX;
+    private float centerY;
 
     public ParallaxImageView(Context context) {
         super(context);
@@ -85,10 +93,13 @@ public class ParallaxImageView extends AspectRatioImageView {
         TypedArray a = getContext().obtainStyledAttributes(attrs, R.styleable.ParallaxImageView);
 
         setParallaxEnabled(a.getBoolean(R.styleable.ParallaxImageView_rk_parallaxEnabled, DEFAULT_PARALLAX_ENABLED));
+        setParallaxX(a.getDimensionPixelSize(R.styleable.ParallaxImageView_rk_parallaxX, DEFAULT_PARALLAX_X));
+        setParallaxY(a.getDimensionPixelSize(R.styleable.ParallaxImageView_rk_parallaxY, DEFAULT_PARALLAX_Y));
         setParallaxReverse(a.getInt(R.styleable.ParallaxImageView_rk_parallaxReverse, DEFAULT_PARALLAX_REVERSE));
         setParallaxUpdateOnDrawEnabled(a.getBoolean(R.styleable.ParallaxImageView_rk_parallaxUpdateOnDraw, DEFAULT_UPDATE_ON_DRAW));
         setParallaxInterpolator(a.getInt(R.styleable.ParallaxImageView_rk_parallaxInterpolation, DEFAULT_INTERPOLATION));
         setParallaxContainer(a.getResourceId(R.styleable.ParallaxImageView_rk_parallaxContainer, 0));
+        setScaleType(ScaleType.MATRIX);
 
         a.recycle();
     }
@@ -97,55 +108,12 @@ public class ParallaxImageView extends AspectRatioImageView {
     protected void onAttachedToWindow() {
         super.onAttachedToWindow();
 
-        mOnScrollChangedListener = new ViewTreeObserver.OnScrollChangedListener() {
-            @Override
-            public void onScrollChanged() {
-                applyParallax();
-            }
-        };
-
-        mOnGlobalLayoutListener = new ViewTreeObserver.OnGlobalLayoutListener() {
-            @Override
-            public void onGlobalLayout() {
-                heightImageView = (float) getHeight();
-                widthImageView = (float) getWidth();
-
-                applyParallax();
-            }
-        };
-
-        ViewTreeObserver viewTreeObserver = getViewTreeObserver();
-        viewTreeObserver.addOnScrollChangedListener(mOnScrollChangedListener);
-        viewTreeObserver.addOnGlobalLayoutListener(mOnGlobalLayoutListener);
-
-        if (updateOnDraw && android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
-            onDrawListener = new ViewTreeObserver.OnDrawListener() {
-                @Override
-                public void onDraw() {
-                    applyParallax();
-                }
-            };
-            viewTreeObserver.addOnDrawListener(onDrawListener);
-        }
-
-        applyParallax();
+        setParallaxEnabled(isParallaxEnabled());
     }
 
     @Override
     protected void onDetachedFromWindow() {
-        ViewTreeObserver viewTreeObserver = getViewTreeObserver();
-        viewTreeObserver.removeOnScrollChangedListener(mOnScrollChangedListener);
-
-        if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
-            viewTreeObserver.removeOnGlobalLayoutListener(mOnGlobalLayoutListener);
-        } else {
-            //noinspection deprecation
-            viewTreeObserver.removeGlobalOnLayoutListener(mOnGlobalLayoutListener);
-        }
-
-        if (updateOnDraw && android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
-            viewTreeObserver.removeOnDrawListener(onDrawListener);
-        }
+        setParallaxEnabled(false);
 
         super.onDetachedFromWindow();
     }
@@ -153,51 +121,54 @@ public class ParallaxImageView extends AspectRatioImageView {
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
-
         measureParallax();
     }
 
     private void measureParallax() {
+        if (!isAttachedToWindow()) {
+            return;
+        }
+
         getContainerSize();
 
         if (getDrawable() != null) {
-            int dheight = getDrawable().getIntrinsicHeight();
-            int dwidth = getDrawable().getIntrinsicWidth();
-            int vheight = getMeasuredHeight();
-            int vwidth = getMeasuredWidth();
+            float dNewHeight, dNewWidth;
+            int dWidth = getDrawable().getIntrinsicWidth();
+            int dHeight = getDrawable().getIntrinsicHeight();
+            int vWidth = getMeasuredWidth();
+            int vHeight = getMeasuredHeight();
 
-//            heightImageView = vwidth;
-//            widthImageView = vheight;
-
-            float scale;
-
-            float dnewHeight = 0;
-            float dnewWidth = 0;
-
-            switch (getScaleType()) {
-                case CENTER_CROP:
-                case CENTER:
-                case CENTER_INSIDE:
-                    if (dwidth * vheight > vwidth * dheight) {
-                        scale = (float) vheight / (float) dheight;
-                        dnewWidth = dwidth * scale;
-                        dnewHeight = vheight;
-                    } else {
-                        scale = (float) vwidth / (float) dwidth;
-                        dnewWidth = vwidth;
-                        dnewHeight = dheight * scale;
-                    }
-                    break;
-                case FIT_CENTER:
-                case FIT_END:
-                case FIT_START:
-                case FIT_XY:
-                case MATRIX:
-                    break;
+            if (parallaxX >= 0) {
+                dWidth = vWidth + parallaxX;
             }
 
-            scrollSpaceY = (dnewHeight > vheight) ? (dnewHeight - vheight) : 0;
-            scrollSpaceX = (dnewWidth > vwidth) ? (dnewWidth - vwidth) : 0;
+            if (parallaxY >= 0) {
+                dHeight = vHeight + parallaxY;
+            }
+
+            if (dWidth * vHeight > vWidth * dHeight) {
+                scale = (float) vHeight / dHeight;
+                dNewWidth = dWidth * scale;
+                dNewHeight = vHeight;
+            } else {
+                scale = (float) vWidth / dWidth;
+                dNewWidth = vWidth;
+                dNewHeight = dHeight * scale;
+            }
+
+            scrollSpaceX = Math.max(0, dNewWidth - vWidth);
+            scrollSpaceY = Math.max(0, dNewHeight - vHeight);
+
+            if (parallaxX >= 0) {
+                scrollSpaceX = Math.min(dNewWidth - vWidth, parallaxX);
+            }
+
+            if (parallaxY >= 0) {
+                scrollSpaceY = Math.min(dNewHeight - vHeight, parallaxY);
+            }
+
+            centerX = Math.max(0, dNewWidth - vWidth) * 0.5F;
+            centerY = Math.max(0, dNewHeight - vHeight) * 0.5F;
         }
 
         applyParallax();
@@ -229,31 +200,38 @@ public class ParallaxImageView extends AspectRatioImageView {
         }
     }
 
-
     private void applyParallax() {
+        float translateX = -centerX;
+        float translateY = -centerY;
+        float scrollDelta, interpolatedScrollDelta;
+
         getLocationOnScreen(parallaxPos);
         getDrawingRect(parallaxRect);
 
         if (scrollSpaceY != 0) {
-            float scrollDeltaY = 1F - Math.max(0, Math.min((float) (parallaxPos[1] - containerBounds.top + parallaxRect.height()) / (containerBounds.height() + parallaxRect.height()), 1));
-            float interpolatedScrollDeltaY = interpolator.getInterpolation(scrollDeltaY);
+            scrollDelta = 1F - Math.max(0, Math.min((float) (parallaxPos[1] - containerBounds.top + parallaxRect.height()) / (containerBounds.height() + parallaxRect.height()), 1));
+            interpolatedScrollDelta = interpolator.getInterpolation(scrollDelta);
+            translateY += Math.min(Math.max((0.5f - interpolatedScrollDelta), -0.5f), 0.5f) * scrollSpaceY;
 
-            if (reverseY)
-                setMyScrollY(Math.round(Math.min(Math.max((0.5f - interpolatedScrollDeltaY), -0.5f), 0.5f) * -scrollSpaceY));
-            else
-                setMyScrollY(Math.round(Math.min(Math.max((0.5f - interpolatedScrollDeltaY), -0.5f), 0.5f) * scrollSpaceY));
+            if (reverseY) {
+                translateY *= -1;
+            }
         }
 
         if (scrollSpaceX != 0) {
-            float scrollDeltaX = 1F - Math.max(0, Math.min((float) (parallaxPos[0] - containerBounds.left + parallaxRect.width()) / (containerBounds.width() + parallaxRect.width()), 1));
-            float interpolatedScrollDeltaX = interpolator.getInterpolation(scrollDeltaX);
+            scrollDelta = 1F - Math.max(0, Math.min((float) (parallaxPos[0] - containerBounds.left + parallaxRect.width()) / (containerBounds.width() + parallaxRect.width()), 1));
+            interpolatedScrollDelta = interpolator.getInterpolation(scrollDelta);
+            translateX += Math.min(Math.max((0.5f - interpolatedScrollDelta), -0.5f), 0.5f) * scrollSpaceX;
 
             if (reverseX) {
-                setMyScrollX(Math.round(Math.min(Math.max((0.5f - interpolatedScrollDeltaX), -0.5f), 0.5f) * -scrollSpaceX));
-            } else {
-                setMyScrollX(Math.round(Math.min(Math.max((0.5f - interpolatedScrollDeltaX), -0.5f), 0.5f) * scrollSpaceX));
+                translateX *= -1;
             }
         }
+
+        matrix.reset();
+        matrix.setScale(scale, scale);
+        matrix.postTranslate(translateX, translateY);
+        setImageMatrix(matrix);
     }
 
     private void setMyScrollX(int value) {
@@ -322,7 +300,59 @@ public class ParallaxImageView extends AspectRatioImageView {
         this.parallaxEnabled = parallaxEnabled;
 
         if (parallaxEnabled) {
+            if (mOnScrollChangedListener == null) {
+                mOnScrollChangedListener = new ViewTreeObserver.OnScrollChangedListener() {
+                    @Override
+                    public void onScrollChanged() {
+                        applyParallax();
+                    }
+                };
+            }
+
+            if (mOnGlobalLayoutListener == null) {
+                mOnGlobalLayoutListener = new ViewTreeObserver.OnGlobalLayoutListener() {
+                    @Override
+                    public void onGlobalLayout() {
+                        applyParallax();
+                    }
+                };
+            }
+
+            if (onDrawListener == null) {
+                ViewTreeObserver viewTreeObserver = getViewTreeObserver();
+                viewTreeObserver.addOnScrollChangedListener(mOnScrollChangedListener);
+                viewTreeObserver.addOnGlobalLayoutListener(mOnGlobalLayoutListener);
+
+                if (updateOnDraw && android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+                    onDrawListener = new ViewTreeObserver.OnDrawListener() {
+                        @Override
+                        public void onDraw() {
+                            applyParallax();
+                        }
+                    };
+                    viewTreeObserver.addOnDrawListener(onDrawListener);
+                }
+            }
+
             requestLayout();
+        } else {
+            ViewTreeObserver viewTreeObserver = getViewTreeObserver();
+
+            if (mOnScrollChangedListener != null) {
+                viewTreeObserver.removeOnScrollChangedListener(mOnScrollChangedListener);
+                mOnScrollChangedListener = null;
+            }
+
+            if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+                viewTreeObserver.removeOnGlobalLayoutListener(mOnGlobalLayoutListener);
+            } else {
+                //noinspection deprecation
+                viewTreeObserver.removeGlobalOnLayoutListener(mOnGlobalLayoutListener);
+            }
+
+            if (updateOnDraw && android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+                viewTreeObserver.removeOnDrawListener(onDrawListener);
+            }
         }
     }
 
@@ -371,6 +401,8 @@ public class ParallaxImageView extends AspectRatioImageView {
     public void setParallaxUpdateOnDrawEnabled(boolean updateOnDraw) {
         this.updateOnDraw = updateOnDraw;
 
+        setParallaxEnabled(isParallaxEnabled());
+
         if (parallaxEnabled) {
             requestLayout();
         }
@@ -382,26 +414,13 @@ public class ParallaxImageView extends AspectRatioImageView {
 
     @Override
     public void setScaleType(ScaleType scaleType) {
-        super.setScaleType(scaleType);
+        super.setScaleType(ScaleType.MATRIX);
+        this.scaleType = scaleType;
+    }
 
-        if (isParallaxEnabled()) {
-            switch (scaleType) {
-                case CENTER:
-                case CENTER_CROP:
-                case CENTER_INSIDE:
-                    break;
-                case FIT_CENTER:
-                    throw new IllegalArgumentException("Scale type fitCenter unsupported");
-                case FIT_END:
-                    throw new IllegalArgumentException("Scale type fitEnd unsupported");
-                case FIT_START:
-                    throw new IllegalArgumentException("Scale type fitStart unsupported");
-                case FIT_XY:
-                    throw new IllegalArgumentException("Scale type fitXY unsupported");
-                case MATRIX:
-                    throw new IllegalArgumentException("Scale type matrix unsupported");
-            }
-        }
+    @Override
+    public ScaleType getScaleType() {
+        return scaleType;
     }
 
     public void setParallaxInterpolator(int interpolatorID) {
@@ -415,6 +434,24 @@ public class ParallaxImageView extends AspectRatioImageView {
 
     public Interpolator getInterpolator() {
         return interpolator;
+    }
+
+    public void setParallaxX(int parallaxX) {
+        this.parallaxX = parallaxX;
+        measureParallax();
+    }
+
+    public int getParallaxX() {
+        return parallaxX;
+    }
+
+    public void setParallaxY(int parallaxY) {
+        this.parallaxY = parallaxY;
+        measureParallax();
+    }
+
+    public int getParallaxY() {
+        return parallaxY;
     }
 
     private static class InterpolatorSelector {
