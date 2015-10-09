@@ -10,17 +10,16 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_gravity="center_horizontal"
-        android:layout_marginTop="30dp"
         android:clipToPadding="false"
         android:paddingBottom="@dimen/activity_vertical_margin"
-        android:paddingLeft="@dimen/activity_horizontal_margin"
-        android:paddingRight="@dimen/activity_horizontal_margin"
         android:paddingTop="@dimen/activity_vertical_margin">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical">
+            android:orientation="vertical"
+            android:paddingLeft="@dimen/activity_horizontal_margin"
+            android:paddingRight="@dimen/activity_horizontal_margin">
 
             <com.rkitmedia.rkimage.ParallaxImageView
                 android:layout_width="match_parent"
@@ -29,17 +28,8 @@
                 android:src="@drawable/sample_image"
                 app:rk_aspectRatio="2.4"
                 app:rk_parallaxContainer="@id/scrollView2"
-                app:rk_parallaxInterpolation="decelerate" />
-
-            <com.rkitmedia.rkimage.ParallaxImageView
-                android:layout_width="match_parent"
-                android:layout_height="200dp"
-                android:layout_marginTop="@dimen/activity_vertical_margin"
-                android:scaleType="centerCrop"
-                android:src="@drawable/sample_image"
-                app:rk_aspectRatio="2.4"
-                app:rk_parallaxContainer="@id/scrollView2"
-                app:rk_parallaxInterpolation="decelerate" />
+                app:rk_parallaxInterpolation="linear"
+                app:rk_parallaxY="120dp" />
 
             <com.rkitmedia.rkimage.ParallaxImageView
                 android:layout_width="match_parent"
@@ -49,7 +39,8 @@
                 android:src="@drawable/sample_image"
                 app:rk_aspectRatio="2.4"
                 app:rk_parallaxContainer="@id/scrollView2"
-                app:rk_parallaxInterpolation="decelerate" />
+                app:rk_parallaxInterpolation="linear"
+                app:rk_parallaxY="110dp" />
 
             <com.rkitmedia.rkimage.ParallaxImageView
                 android:layout_width="match_parent"
@@ -59,7 +50,8 @@
                 android:src="@drawable/sample_image"
                 app:rk_aspectRatio="2.4"
                 app:rk_parallaxContainer="@id/scrollView2"
-                app:rk_parallaxInterpolation="decelerate" />
+                app:rk_parallaxInterpolation="linear"
+                app:rk_parallaxY="100dp" />
 
             <com.rkitmedia.rkimage.ParallaxImageView
                 android:layout_width="match_parent"
@@ -69,7 +61,8 @@
                 android:src="@drawable/sample_image"
                 app:rk_aspectRatio="2.4"
                 app:rk_parallaxContainer="@id/scrollView2"
-                app:rk_parallaxInterpolation="decelerate" />
+                app:rk_parallaxInterpolation="linear"
+                app:rk_parallaxY="90dp" />
 
             <com.rkitmedia.rkimage.ParallaxImageView
                 android:layout_width="match_parent"
@@ -79,7 +72,8 @@
                 android:src="@drawable/sample_image"
                 app:rk_aspectRatio="2.4"
                 app:rk_parallaxContainer="@id/scrollView2"
-                app:rk_parallaxInterpolation="decelerate" />
+                app:rk_parallaxInterpolation="linear"
+                app:rk_parallaxY="80dp" />
 
             <com.rkitmedia.rkimage.ParallaxImageView
                 android:layout_width="match_parent"
@@ -89,7 +83,8 @@
                 android:src="@drawable/sample_image"
                 app:rk_aspectRatio="2.4"
                 app:rk_parallaxContainer="@id/scrollView2"
-                app:rk_parallaxInterpolation="decelerate" />
+                app:rk_parallaxInterpolation="linear"
+                app:rk_parallaxY="70dp" />
 
             <com.rkitmedia.rkimage.ParallaxImageView
                 android:layout_width="match_parent"
@@ -99,7 +94,8 @@
                 android:src="@drawable/sample_image"
                 app:rk_aspectRatio="2.4"
                 app:rk_parallaxContainer="@id/scrollView2"
-                app:rk_parallaxInterpolation="decelerate" />
+                app:rk_parallaxInterpolation="linear"
+                app:rk_parallaxY="60dp" />
 
             <com.rkitmedia.rkimage.ParallaxImageView
                 android:layout_width="match_parent"
@@ -109,7 +105,8 @@
                 android:src="@drawable/sample_image"
                 app:rk_aspectRatio="2.4"
                 app:rk_parallaxContainer="@id/scrollView2"
-                app:rk_parallaxInterpolation="decelerate" />
+                app:rk_parallaxInterpolation="linear"
+                app:rk_parallaxY="50dp" />
 
             <com.rkitmedia.rkimage.ParallaxImageView
                 android:layout_width="match_parent"
@@ -119,7 +116,8 @@
                 android:src="@drawable/sample_image"
                 app:rk_aspectRatio="2.4"
                 app:rk_parallaxContainer="@id/scrollView2"
-                app:rk_parallaxInterpolation="decelerate" />
+                app:rk_parallaxInterpolation="linear"
+                app:rk_parallaxY="40dp" />
 
             <com.rkitmedia.rkimage.ParallaxImageView
                 android:layout_width="match_parent"
@@ -129,7 +127,8 @@
                 android:src="@drawable/sample_image"
                 app:rk_aspectRatio="2.4"
                 app:rk_parallaxContainer="@id/scrollView2"
-                app:rk_parallaxInterpolation="decelerate" />
+                app:rk_parallaxInterpolation="linear"
+                app:rk_parallaxY="20dp" />
 
             <com.rkitmedia.rkimage.ParallaxImageView
                 android:layout_width="match_parent"
@@ -139,7 +138,19 @@
                 android:src="@drawable/sample_image"
                 app:rk_aspectRatio="2.4"
                 app:rk_parallaxContainer="@id/scrollView2"
-                app:rk_parallaxInterpolation="decelerate" />
+                app:rk_parallaxInterpolation="linear"
+                app:rk_parallaxY="10dp" />
+
+            <com.rkitmedia.rkimage.ParallaxImageView
+                android:layout_width="match_parent"
+                android:layout_height="200dp"
+                android:layout_marginTop="@dimen/activity_vertical_margin"
+                android:scaleType="centerCrop"
+                android:src="@drawable/sample_image"
+                app:rk_aspectRatio="2.4"
+                app:rk_parallaxContainer="@id/scrollView2"
+                app:rk_parallaxInterpolation="linear"
+                app:rk_parallaxY="0dp" />
         </LinearLayout>
     </ScrollView>
 </LinearLayout>

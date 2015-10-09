@@ -4,7 +4,6 @@ import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.os.Build;
-import android.support.annotation.CallSuper;
 import android.util.AttributeSet;
 import android.widget.ImageView;
 
@@ -62,7 +61,6 @@ public class AspectRatioImageView extends ImageView {
     }
 
     @Override
-    @CallSuper
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
 
@@ -91,8 +89,7 @@ public class AspectRatioImageView extends ImageView {
         setMeasuredDimension(newWidth, newHeight);
     }
 
-    @CallSuper
-    protected void checkAttributes(AttributeSet attrs) {
+    private void checkAttributes(AttributeSet attrs) {
         TypedArray a = getContext().obtainStyledAttributes(attrs, R.styleable.AspectRatioImageView);
 
         setAspectRatio(a.getFloat(R.styleable.AspectRatioImageView_rk_aspectRatio, DEFAULT_ASPECT_RATIO));

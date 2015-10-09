@@ -6,7 +6,6 @@ import android.content.res.TypedArray;
 import android.graphics.Matrix;
 import android.graphics.Rect;
 import android.os.Build;
-import android.support.annotation.CallSuper;
 import android.util.AttributeSet;
 import android.view.Display;
 import android.view.View;
@@ -74,22 +73,21 @@ public class ParallaxImageView extends AspectRatioImageView {
 
     public ParallaxImageView(Context context, AttributeSet attrs) {
         super(context, attrs);
+        checkAttributes(attrs);
     }
 
     public ParallaxImageView(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
+        checkAttributes(attrs);
     }
 
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
     public ParallaxImageView(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
         super(context, attrs, defStyleAttr, defStyleRes);
+        checkAttributes(attrs);
     }
 
-    @Override
-    @CallSuper
-    protected void checkAttributes(AttributeSet attrs) {
-        super.checkAttributes(attrs);
-
+    private void checkAttributes(AttributeSet attrs) {
         TypedArray a = getContext().obtainStyledAttributes(attrs, R.styleable.ParallaxImageView);
 
         setParallaxEnabled(a.getBoolean(R.styleable.ParallaxImageView_rk_parallaxEnabled, DEFAULT_PARALLAX_ENABLED));
@@ -139,11 +137,11 @@ public class ParallaxImageView extends AspectRatioImageView {
             int vHeight = getMeasuredHeight();
 
             if (parallaxX >= 0) {
-                dWidth = vWidth + parallaxX;
+                dWidth = Math.max(dWidth, vWidth + parallaxX);
             }
 
             if (parallaxY >= 0) {
-                dHeight = vHeight + parallaxY;
+                dHeight = Math.max(dHeight, vHeight + parallaxY);
             }
 
             if (dWidth * vHeight > vWidth * dHeight) {
@@ -160,11 +158,11 @@ public class ParallaxImageView extends AspectRatioImageView {
             scrollSpaceY = Math.max(0, dNewHeight - vHeight);
 
             if (parallaxX >= 0) {
-                scrollSpaceX = Math.min(dNewWidth - vWidth, parallaxX);
+                scrollSpaceX = parallaxX;
             }
 
             if (parallaxY >= 0) {
-                scrollSpaceY = Math.min(dNewHeight - vHeight, parallaxY);
+                scrollSpaceY = parallaxY;
             }
 
             centerX = Math.max(0, dNewWidth - vWidth) * 0.5F;
@@ -232,22 +230,6 @@ public class ParallaxImageView extends AspectRatioImageView {
         matrix.setScale(scale, scale);
         matrix.postTranslate(translateX, translateY);
         setImageMatrix(matrix);
-    }
-
-    private void setMyScrollX(int value) {
-        if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
-            setScrollX(value);
-        } else {
-            scrollTo(value, getScrollY());
-        }
-    }
-
-    private void setMyScrollY(int value) {
-        if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
-            setScrollY(value);
-        } else {
-            scrollTo(getScrollX(), value);
-        }
     }
 
     public void setParallaxContainer(final int viewID) {
